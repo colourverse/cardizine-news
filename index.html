@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cardizine News Finder</title>
+<meta name="description" content="Collate culture and general news stories for a day or range of days from Wikipedia, The Guardian, the New York Times and the BBC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground: #F3F0EA; --panel: #FFFFFF; --panel-2: #F8F6F1; --line: #E2DDD3; --line-2: #CFC8BB;
+  --ink: #1D1B18; --ink-2: #5C574E; --ink-3: #8D877C;
+  --accent: #C2410C; --accent-2: #9A3412; --accent-soft: #FBE5D6; --on-accent: #FFFFFF;
+  --star: #D97706;
+  --wiki: #3F4A5C; --wiki-soft: #E4E8EF;
+  --guardian: #052962; --guardian-soft: #DDE5F3;
+  --nyt: #121212; --nyt-soft: #E6E6E6;
+  --bbc: #B80000; --bbc-soft: #F8DEDE;
+  --err: #B42318; --err-soft: #FDE8E6; --ok: #15803D;
+  --shadow: 0 1px 2px rgb(40 30 10 / .06), 0 4px 14px rgb(40 30 10 / .06);
+  --shadow-pop: 0 10px 34px rgb(40 30 10 / .18), 0 1px 3px rgb(40 30 10 / .1);
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-ui: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #14130F; --panel: #1E1C18; --panel-2: #24221D; --line: #34312A; --line-2: #48443B;
+    --ink: #EEEAE2; --ink-2: #B3AC9F; --ink-3: #7F786C;
+    --accent: #FB8A4C; --accent-2: #FDA774; --accent-soft: #3A2417; --on-accent: #1A0C04;
+    --star: #FBBF24;
+    --wiki: #B9C3D3; --wiki-soft: #262B34;
+    --guardian: #9DB7E8; --guardian-soft: #1C2535;
+    --nyt: #E8E8E8; --nyt-soft: #2A2A2A;
+    --bbc: #FF8A8A; --bbc-soft: #3A1C1C;
+    --err: #FF8A80; --err-soft: #3B1D1A; --ok: #4ADE80;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 18px rgb(0 0 0 / .3);
+    --shadow-pop: 0 10px 34px rgb(0 0 0 / .55), 0 1px 3px rgb(0 0 0 / .4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #14130F; --panel: #1E1C18; --panel-2: #24221D; --line: #34312A; --line-2: #48443B;
+  --ink: #EEEAE2; --ink-2: #B3AC9F; --ink-3: #7F786C;
+  --accent: #FB8A4C; --accent-2: #FDA774; --accent-soft: #3A2417; --on-accent: #1A0C04;
+  --star: #FBBF24;
+  --wiki: #B9C3D3; --wiki-soft: #262B34;
+  --guardian: #9DB7E8; --guardian-soft: #1C2535;
+  --nyt: #E8E8E8; --nyt-soft: #2A2A2A;
+  --bbc: #FF8A8A; --bbc-soft: #3A1C1C;
+  --err: #FF8A80; --err-soft: #3B1D1A; --ok: #4ADE80;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 6px 18px rgb(0 0 0 / .3);
+  --shadow-pop: 0 10px 34px rgb(0 0 0 / .55), 0 1px 3px rgb(0 0 0 / .4);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--ground); color: var(--ink); font-family: var(--f-ui); font-size: 15px; line-height: 1.45; }
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Header */
+header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1180px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+.mark { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.mark-card { width: 26px; height: 34px; border-radius: 5px; background: var(--accent); position: relative; transform: rotate(-8deg); box-shadow: 4px 2px 0 -1px var(--line-2); flex: none; }
+.mark-card::after { content: "N"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--on-accent); font-family: var(--f-display); font-weight: 650; font-size: 17px; transform: rotate(8deg); }
+.wordmark { font-family: var(--f-display); font-weight: 650; font-size: 22px; letter-spacing: -0.01em; }
+.wordmark span { color: var(--ink-3); font-weight: 500; }
+.top-actions { margin-left: auto; display: flex; gap: 6px; }
+
+.btn { border: 1px solid var(--line-2); background: var(--panel); border-radius: 8px; padding: 7px 12px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover { background: var(--panel); border-color: var(--line); }
+.btn:disabled { opacity: .55; cursor: default; }
+.count-pill { background: var(--accent); color: var(--on-accent); border-radius: 99px; font-size: 12px; padding: 0 7px; min-width: 20px; text-align: center; }
+
+main { max-width: 1180px; margin: 0 auto; padding: 16px; }
+
+/* Query panel */
+.query { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; display: grid; gap: 14px; }
+.q-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.field { display: grid; gap: 4px; }
+.field label, .lbl { font-size: 12px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.field input[type="date"], .field input[type="search"], .field input[type="text"], .field input[type="password"] { border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 8px; padding: 7px 10px; min-width: 0; }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line-2); background: var(--panel-2); border-radius: 99px; padding: 4px 11px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+.chip:hover { border-color: var(--ink-3); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+.chip[aria-pressed="false"] { color: var(--ink-3); }
+.chip .dot { width: 9px; height: 9px; box-shadow: 0 0 0 1.5px var(--panel); border-radius: 50%; background: currentColor; flex: none; }
+.chip .n { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
+.filters { display: grid; gap: 10px; }
+.f-line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.f-line .lbl { margin-right: 4px; min-width: 64px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+/* Status */
+.status { margin-top: 12px; display: grid; gap: 6px; }
+.status:empty { display: none; }
+.st { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.st.err { color: var(--err); background: var(--err-soft); border-color: transparent; }
+.st.ok::before { content: "✓"; color: var(--ok); font-weight: 700; }
+.st.busy::before { content: ""; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--accent); animation: spin .8s linear infinite; flex: none; }
+.st.info::before { content: "i"; font-weight: 700; font-style: italic; font-family: Georgia, serif; color: var(--ink-3); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Days */
+.days { margin-top: 18px; display: grid; gap: 26px; }
+.day-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; border-bottom: 2px solid var(--ink); padding-bottom: 6px; margin-bottom: 12px; }
+.day-head h2 { margin: 0; font-family: var(--f-display); font-weight: 650; font-size: 26px; letter-spacing: -0.01em; }
+.day-head .day-n { color: var(--ink-3); font-size: 13px; }
+.day-links { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px; }
+.dl { font-size: 12.5px; text-decoration: none; border-radius: 6px; padding: 3px 8px; font-weight: 600; border: 1px solid transparent; }
+.dl:hover { border-color: currentColor; }
+.dl.bbc { color: var(--bbc); background: var(--bbc-soft); }
+.dl.guardian { color: var(--guardian); background: var(--guardian-soft); }
+.dl.nyt { color: var(--nyt); background: var(--nyt-soft); }
+.dl.wiki { color: var(--wiki); background: var(--wiki-soft); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
+.empty-day { color: var(--ink-3); font-size: 14px; }
+
+.story { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.story.starred { border-color: var(--star); box-shadow: 0 0 0 1px var(--star), var(--shadow); }
+.story .thumb { aspect-ratio: 16 / 9; background: var(--panel-2) center / cover no-repeat; border-bottom: 1px solid var(--line); }
+.story .body { padding: 11px 13px 12px; display: grid; gap: 6px; flex: 1; align-content: start; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; padding-right: 30px; }
+.src { font-weight: 700; border-radius: 5px; padding: 1px 6px; }
+.src.wiki { color: var(--wiki); background: var(--wiki-soft); }
+.src.guardian { color: var(--guardian); background: var(--guardian-soft); }
+.src.nyt { color: var(--nyt); background: var(--nyt-soft); }
+.topic { color: var(--ink-2); font-weight: 600; }
+.section { color: var(--ink-3); }
+.story h3 { margin: 0; font-family: var(--f-display); font-weight: 650; font-size: 18px; line-height: 1.22; letter-spacing: -0.005em; }
+.story h3 a { text-decoration: none; }
+.story h3 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.story.wiki-item h3 { font-family: var(--f-ui); font-weight: 500; font-size: 15px; line-height: 1.42; }
+.story .ctx { font-size: 12.5px; color: var(--ink-3); font-weight: 600; }
+.story p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.story .links { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; margin-top: 2px; }
+.story .links a { color: var(--ink-3); }
+.story .links a:hover { color: var(--accent); }
+.star-btn { position: absolute; top: 7px; right: 7px; width: 30px; height: 30px; border-radius: 8px; border: 1px solid transparent; background: transparent; display: grid; place-items: center; color: var(--ink-3); }
+.story .thumb + .body .star-btn, .star-btn.on-thumb { background: var(--panel); border-color: var(--line); }
+.star-btn:hover { color: var(--star); }
+.star-btn[aria-pressed="true"] { color: var(--star); }
+.star-btn svg { width: 18px; height: 18px; }
+.star-btn[aria-pressed="true"] svg path { fill: currentColor; }
+
+/* Welcome */
+.welcome { margin-top: 18px; background: var(--panel); border: 1px dashed var(--line-2); border-radius: 14px; padding: 22px; display: grid; gap: 10px; color: var(--ink-2); }
+.welcome h2 { margin: 0; font-family: var(--f-display); font-size: 24px; color: var(--ink); }
+.welcome ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.welcome b { color: var(--ink); }
+
+/* Drawers / dialogs */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); color: var(--ink); box-shadow: var(--shadow-pop); padding: 0; width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); }
+dialog::backdrop { background: rgb(20 15 5 / .4); }
+.dlg-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.dlg-head h2 { margin: 0; font-family: var(--f-display); font-size: 21px; flex: 1; }
+.dlg-body { padding: 16px; display: grid; gap: 14px; }
+.dlg-body p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.dlg-body .field input { width: 100%; }
+.hint { font-size: 13px; color: var(--ink-3); }
+.hint a { color: var(--accent); }
+.dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--panel); }
+dialog.wide { width: min(760px, calc(100vw - 32px)); }
+.sl-list { display: grid; gap: 8px; }
+.sl-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: start; border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; background: var(--panel-2); }
+.sl-item a { font-weight: 600; text-decoration: none; }
+.sl-item a:hover { text-decoration: underline; }
+.sl-item .meta { padding: 0; grid-column: 1; }
+.sl-item .note { grid-column: 1 / -1; width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: var(--panel); font-size: 13px; }
+.sl-empty { color: var(--ink-3); }
+
+.toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--panel); padding: 9px 14px; border-radius: 8px; font-size: 14px; opacity: 0; transition: .2s; pointer-events: none; z-index: 50; }
+.toast.show { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 640px) {
+  .wordmark span { display: none; }
+  .top-actions .btn .t { display: none; }
+  .q-row { align-items: stretch; }
+  .q-row .field { flex: 1 1 140px; }
+  .grid { grid-template-columns: 1fr; }
+  .day-head h2 { font-size: 22px; }
+  .f-line .lbl { width: 100%; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="mark" href="./" aria-label="Cardizine News Finder home">
+      <span class="mark-card" aria-hidden="true"></span>
+      <span class="wordmark">Cardizine <span>News Finder</span></span>
+    </a>
+    <div class="top-actions">
+      <button class="btn ghost" id="btn-shortlist" type="button" title="Shortlist">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <span class="t">Shortlist</span> <span class="count-pill" id="sl-count">0</span>
+      </button>
+      <button class="btn ghost" id="btn-settings" type="button" title="Settings and API keys">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span class="t">Settings</span>
+      </button>
+      <button class="btn ghost" id="btn-theme" type="button" title="Switch light or dark theme" aria-label="Switch light or dark theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="query" aria-label="Find stories">
+    <form class="q-row" id="q-form">
+      <div class="field">
+        <label for="from">From</label>
+        <input type="date" id="from" required>
+      </div>
+      <div class="field">
+        <label for="to">To</label>
+        <input type="date" id="to" required>
+      </div>
+      <button class="btn primary" type="submit" id="btn-go">Find stories</button>
+      <div class="quick" aria-label="Quick dates">
+        <button class="chip" type="button" data-quick="0">Today</button>
+        <button class="chip" type="button" data-quick="1">Yesterday</button>
+        <button class="chip" type="button" data-quick="week">Last 7 days</button>
+        <button class="chip" type="button" data-quick="shift-back" title="Move the range back by its own length">◀ Earlier</button>
+        <button class="chip" type="button" data-quick="shift-fwd" title="Move the range forward by its own length">Later ▶</button>
+      </div>
+    </form>
+    <div class="filters" id="filters" hidden>
+      <div class="f-line" id="f-sources"><span class="lbl">Sources</span></div>
+      <div class="f-line" id="f-topics"><span class="lbl">Topics</span></div>
+      <div class="f-line">
+        <span class="lbl">Refine</span>
+        <div class="field" style="flex:1 1 220px"><label for="search" class="sr">Search within results</label><input type="search" id="search" placeholder="Search within results…"></div>
+        <label class="toggle"><input type="checkbox" id="show-all"> Include sport and party politics</label>
+      </div>
+    </div>
+  </section>
+
+  <div class="status" id="status" aria-live="polite"></div>
+
+  <section class="welcome" id="welcome">
+    <h2>Find a story for the next card</h2>
+    <p>Pick a day or a range of days and press <b>Find stories</b>. The finder collects:</p>
+    <ul>
+      <li><b>Wikipedia</b> — that day's Current events page, item by item. No key needed.</li>
+      <li><b>The Guardian</b> — culture, books, film, music, art, stage, TV, science, environment, technology, world and UK news. Needs a free key.</li>
+      <li><b>New York Times</b> — the month's archive, filtered to arts, books, culture, science, climate, world and US news. Needs a free developer key.</li>
+      <li><b>BBC</b> — the BBC has no public archive API, so each day gets links to the BBC News front page and sections as they looked that day (Wayback Machine), plus a Google search of the BBC for that date.</li>
+    </ul>
+    <p>Sport and party politics are hidden unless they reach culture or general news. Star stories to add them to your shortlist. Add your API keys in <b>Settings</b>.</p>
+  </section>
+
+  <div class="days" id="days"></div>
+</main>
+
+<dialog id="dlg-settings" aria-labelledby="settings-title">
+  <form method="dialog">
+    <div class="dlg-head"><h2 id="settings-title">Settings</h2><button class="btn ghost" value="cancel" aria-label="Close">✕</button></div>
+    <div class="dlg-body">
+      <p>Keys are kept only in this browser and sent only to their own service. They never leave your computer otherwise.</p>
+      <div class="field">
+        <label for="key-guardian">Guardian API key</label>
+        <input type="password" id="key-guardian" autocomplete="off" spellcheck="false" placeholder="Paste your Guardian key">
+        <span class="hint">Free from <a href="https://open-platform.theguardian.com/access/" target="_blank" rel="noopener">open-platform.theguardian.com/access</a> — choose the developer key.</span>
+      </div>
+      <div class="field">
+        <label for="key-nyt">New York Times API key</label>
+        <input type="password" id="key-nyt" autocomplete="off" spellcheck="false" placeholder="Paste your NYT key">
+        <span class="hint">Free from <a href="https://developer.nytimes.com/get-started" target="_blank" rel="noopener">developer.nytimes.com</a>. Create an app and enable the <b>Archive API</b> and the <b>Article Search API</b>. This key is separate from your subscription; the subscription lets you read the articles you open.</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="opt-wiki" checked> Use Wikipedia</label>
+      <label class="toggle"><input type="checkbox" id="opt-thumbs" checked> Show pictures</label>
+    </div>
+    <div class="dlg-foot"><button class="btn" value="cancel">Cancel</button><button class="btn primary" value="save" id="settings-save">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlg-shortlist" class="wide" aria-labelledby="sl-title">
+  <form method="dialog">
+    <div class="dlg-head"><h2 id="sl-title">Shortlist</h2><button class="btn ghost" value="close" aria-label="Close">✕</button></div>
+    <div class="dlg-body"><div class="sl-list" id="sl-list"></div></div>
+    <div class="dlg-foot">
+      <button class="btn" type="button" id="sl-clear">Clear all</button>
+      <button class="btn" type="button" id="sl-copy">Copy as text</button>
+      <button class="btn primary" value="close">Done</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+
+/* ---------- small helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("cardizine:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("cardizine:" + k, JSON.stringify(v)); } catch {} }
+};
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : String(kid));
+  return el;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+
+/* ---------- dates (all days are UK calendar days) ---------- */
+const TZ = "Europe/London";
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MON3 = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"];
+function ukDay(dateLike) {
+  // YYYY-MM-DD of an instant, in UK time
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(dateLike));
+  return p;
+}
+function todayUK() { return ukDay(Date.now()); }
+function parseDay(s) { const [y, m, d] = s.split("-").map(Number); return { y, m, d }; }
+function addDays(s, n) { const { y, m, d } = parseDay(s); const t = new Date(Date.UTC(y, m - 1, d + n)); return t.toISOString().slice(0, 10); }
+function daysBetween(a, b) { const A = parseDay(a), B = parseDay(b); return Math.round((Date.UTC(B.y, B.m - 1, B.d) - Date.UTC(A.y, A.m - 1, A.d)) / 864e5); }
+function rangeDays(from, to) { const out = []; for (let s = from; s <= to; s = addDays(s, 1)) out.push(s); return out; }
+function longDay(s) { const { y, m, d } = parseDay(s); return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }); }
+const compact = s => s.replaceAll("-", "");
+
+/* ---------- topics ---------- */
+const TOPICS = [
+  { id: "culture", label: "Culture" },
+  { id: "science", label: "Science & environment" },
+  { id: "world", label: "World" },
+  { id: "uk", label: "UK" },
+  { id: "us", label: "US" },
+  { id: "society", label: "Society & law" },
+  { id: "disaster", label: "Disasters" },
+  { id: "business", label: "Business" },
+  { id: "obits", label: "Obituaries" },
+  { id: "politics", label: "Party politics", noisy: true },
+  { id: "sport", label: "Sport", noisy: true },
+  { id: "other", label: "Other" }
+];
+const TOPIC_LABEL = Object.fromEntries(TOPICS.map(t => [t.id, t.label]));
+// A sport or politics story that matches this is treated as culture too, so it stays visible.
+const CULTURE_RX = /\b(art|arts|artist|artists|artwork|museum|gallery|exhibition|festival|film|films|movie|cinema|actor|actress|director|oscar|oscars|bafta|baftas|emmy|grammy|grammys|brit awards|cannes|venice|berlinale|eurovision|music|musician|singer|song|album|band|concert|opera|ballet|theatre|theater|broadway|west end|novel|novelist|author|poet|poetry|book|books|booker|pulitzer|nobel|literature|library|heritage|unesco|monument|cathedral|architecture|architect|fashion|designer|tv|television|series|netflix|bbc|documentary|comedian|comedy|celebrity|royal|king charles|coronation|pope|vatican|religion|language|culture|cultural|censorship|banned|protest|olympic opening|ceremony|mural|statue|sculpture|photograph|photographer|video game|videogame|ai)\b/i;
+// Sections that are mostly party politics.
+const POLITICS_RX = /\b(election|elections|polls?|ballot|by-election|candidate|campaign|party leader|leadership contest|parliament|congress|senate|referendum|cabinet|minister|prime minister|president)\b/i;
+
+function finalTopics(primary, text) {
+  const set = new Set([primary]);
+  if ((primary === "sport" || primary === "politics") && CULTURE_RX.test(text)) set.add("culture");
+  return [...set];
+}
+
+/* ---------- sources ---------- */
+const SOURCES = [
+  { id: "wiki", label: "Wikipedia" },
+  { id: "guardian", label: "The Guardian" },
+  { id: "nyt", label: "New York Times" }
+];
+
+/* Wikipedia: Portal:Current_events/YYYY_Month_D */
+const WIKI_CATS = [
+  [/arts|culture/i, "culture"],
+  [/science|technology/i, "science"],
+  [/health|environment/i, "science"],
+  [/disaster|accident/i, "disaster"],
+  [/business|econom/i, "business"],
+  [/law|crime/i, "society"],
+  [/international|relations/i, "world"],
+  [/armed|conflict|attack/i, "world"],
+  [/politic|election/i, "politics"],
+  [/sport/i, "sport"]
+];
+function wikiTopic(cat) { for (const [rx, t] of WIKI_CATS) if (rx.test(cat)) return t; return "other"; }
+function wikiPageName(day) { const { y, m, d } = parseDay(day); return `Portal:Current_events/${y}_${MONTHS[m - 1]}_${d}`; }
+function wikiUrl(title) { return "https://en.wikipedia.org/wiki/" + encodeURIComponent(title.replaceAll(" ", "_")).replaceAll("%2F", "/").replaceAll("%3A", ":"); }
+
+async function fetchWikiDay(day) {
+  const page = wikiPageName(day);
+  const url = "https://en.wikipedia.org/w/api.php?" + new URLSearchParams({
+    action: "parse", page, prop: "text", format: "json", formatversion: "2", redirects: "1", origin: "*", disablelimitreport: "1"
+  });
+  let res;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    res = await fetch(url, { headers: { "Api-User-Agent": "CardizineNewsFinder/1.0 (personal research tool)" } });
+    if (res.status !== 429) break;
+    await sleep(3000 * (attempt + 1));
+  }
+  if (!res.ok) throw new Error(`Wikipedia answered ${res.status}`);
+  const data = await res.json();
+  if (data.error) {
+    if (data.error.code === "missingtitle") return [];
+    throw new Error(data.error.info || data.error.code);
+  }
+  return parseWikiHtml(data.parse.text, day, page);
+}
+
+function parseWikiHtml(html, day, page) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const root = doc.querySelector(".current-events-content") || doc.querySelector(".description") || doc.body;
+  const items = [];
+  let cat = "General";
+  const walkList = (ul, ctx) => {
+    for (const li of ul.children) {
+      if (li.tagName !== "LI") continue;
+      const own = li.cloneNode(true);
+      own.querySelectorAll("ul, ol").forEach(x => x.remove());
+      own.querySelectorAll("sup, .mw-ref, style").forEach(x => x.remove());
+      const sub = [...li.children].filter(c => c.tagName === "UL" || c.tagName === "OL");
+      const ownText = own.textContent.replace(/\s+/g, " ").trim();
+      const externals = [...own.querySelectorAll("a.external, a[rel~='mw:ExtLink']")];
+      const isStory = externals.length > 0 || ownText.length > 90 || sub.length === 0;
+      if (isStory && ownText) items.push(makeWikiItem(own, ownText, externals, ctx, cat, day, page, items.length));
+      if (sub.length) {
+        const label = isStory ? ctx : [...ctx, ownText];
+        sub.forEach(s => walkList(s, label));
+      }
+    }
+  };
+  const visit = el => {
+    for (const node of el.children) {
+      const tag = node.tagName;
+      if (tag === "UL" || tag === "OL") walkList(node, []);
+      else if ((tag === "P" || tag === "DIV" || /^H\d$/.test(tag)) && node.textContent.trim() && (node.querySelector("b") || /^H\d$/.test(tag) || node.getAttribute("role") === "heading")) {
+        if (!node.querySelector("ul, ol")) cat = node.textContent.replace(/\s+/g, " ").trim();
+        else visit(node);
+      } else if (node.children.length) visit(node);
+    }
+  };
+  visit(root);
+  return items;
+}
+
+function makeWikiItem(own, ownText, externals, ctx, cat, day, page, i) {
+  const sources = externals.map(a => ({ name: a.textContent.replace(/[()]/g, "").trim() || "source", url: a.href }));
+  // Remove trailing "(Reuters) (BBC News)" style citations from the text.
+  let text = ownText;
+  for (const s of sources) text = text.replace("(" + s.name + ")", "");
+  text = text.replace(/(\s*\([^()]{1,60}\))+\s*$/, "").replace(/\s+/g, " ").trim();
+  const wikiLinks = [...own.querySelectorAll("a")].filter(a => !externals.includes(a)).map(a => {
+    const href = a.getAttribute("href") || "";
+    const m = href.match(/(?:\/wiki\/|^\.\/)([^?#]+)/);
+    return m ? { name: a.textContent.trim(), url: "https://en.wikipedia.org/wiki/" + m[1] } : null;
+  }).filter(Boolean);
+  const primary = wikiTopic(cat);
+  const all = [ctx.join(" "), text].join(" ");
+  return {
+    id: `wiki:${day}:${i}:${text.slice(0, 40)}`,
+    source: "wiki", day, title: text, summary: "",
+    context: ctx.join(" › "),
+    url: sources[0]?.url || wikiUrl(page),
+    via: sources[0]?.name || "",
+    section: cat,
+    topics: finalTopics(primary, all),
+    extra: [...wikiLinks.slice(0, 3), { name: "Wikipedia day page", url: wikiUrl(page) }, ...sources.slice(1, 3)]
+  };
+}
+
+/* The Guardian Open Platform */
+const G_SECTIONS = {
+  culture: "culture", books: "culture", film: "culture", music: "culture", artanddesign: "culture", stage: "culture",
+  "tv-and-radio": "culture", games: "culture", fashion: "culture", media: "culture",
+  science: "science", environment: "science", technology: "science",
+  world: "world", "global-development": "world", "us-news": "us", "australia-news": "world",
+  "uk-news": "uk", society: "society", law: "society", education: "society", money: "business", business: "business",
+  politics: "politics", sport: "sport", football: "sport"
+};
+const G_DEFAULT = ["culture","books","film","music","artanddesign","stage","tv-and-radio","games","fashion","media","science","environment","technology","world","global-development","us-news","uk-news","society","law","education","business"];
+const G_NOISY = ["politics","sport","football"];
+
+async function fetchGuardian(from, to, key, includeNoisy, onPage) {
+  const sections = includeNoisy ? [...G_DEFAULT, ...G_NOISY] : G_DEFAULT;
+  const out = [];
+  let page = 1, pages = 1;
+  const maxPages = Math.min(12, 3 + daysBetween(from, to) * 2);
+  do {
+    const url = "https://content.guardianapis.com/search?" + new URLSearchParams({
+      "api-key": key, "from-date": from, "to-date": to, "use-date": "published",
+      section: sections.join("|"), "page-size": "50", page: String(page), "order-by": "newest",
+      "show-fields": "trailText,thumbnail", "show-tags": "tone"
+    });
+    const res = await fetch(url);
+    if (res.status === 401 || res.status === 403) throw new Error("the Guardian rejected the API key — check it in Settings");
+    if (!res.ok) throw new Error(`the Guardian answered ${res.status}`);
+    const r = (await res.json()).response;
+    pages = r.pages || 1;
+    for (const a of r.results || []) {
+      if (a.type && !["article", "liveblog", "gallery", "interactive"].includes(a.type)) continue;
+      const tones = (a.tags || []).map(t => t.id);
+      let primary = G_SECTIONS[a.sectionId] || "other";
+      if (tones.includes("tone/obituaries")) primary = "obits";
+      const summary = stripHtml(a.fields?.trailText || "");
+      out.push({
+        id: "guardian:" + a.id, source: "guardian", day: ukDay(a.webPublicationDate),
+        title: a.webTitle, summary, url: a.webUrl, section: a.sectionName,
+        thumb: a.fields?.thumbnail || "", time: a.webPublicationDate,
+        topics: finalTopics(primary, a.webTitle + " " + summary)
+      });
+    }
+    onPage?.(page, pages, out.length);
+    page++;
+    if (page <= pages && page <= maxPages) await sleep(250);
+  } while (page <= pages && page <= maxPages);
+  return { items: out, truncated: pages > maxPages };
+}
+function stripHtml(s) { const d = new DOMParser().parseFromString(s, "text/html"); return (d.body.textContent || "").replace(/\s+/g, " ").trim(); }
+
+/* New York Times: Archive API (one request per month), Article Search as fallback */
+const NYT_SECTIONS = {
+  "arts": "culture", "books": "culture", "movies": "culture", "theater": "culture", "style": "culture", "t magazine": "culture",
+  "magazine": "culture", "fashion": "culture", "food": "culture", "travel": "culture", "arts & leisure": "culture", "culture": "culture",
+  "television": "culture", "music": "culture", "dance": "culture", "art & design": "culture",
+  "science": "science", "climate": "science", "technology": "science", "health": "science", "well": "science", "weather": "science",
+  "world": "world", "u.s.": "us", "us": "us", "national": "us", "new york": "us", "nyregion": "us",
+  "business": "business", "business day": "business", "your money": "business", "dealbook": "business", "economy": "business",
+  "obituaries": "obits", "education": "society", "sports": "sport", "the athletic": "sport", "politics": "politics", "elections": "politics"
+};
+const NYT_SKIP = new Set(["opinion", "corrections", "crosswords & games", "crosswords", "games", "briefing", "podcasts", "the learning network", "lens", "admin", "homepage", "paid post", "video", "reader center", "times insider", "sunday review"]);
+const nytCache = new Map();
+
+function nytTopic(doc) {
+  const sec = (doc.section_name || doc.section?.name || "").toLowerCase();
+  const sub = (doc.subsection_name || doc.subsection?.name || "").toLowerCase();
+  const desk = (doc.news_desk || doc.desk || "").toLowerCase();
+  if (NYT_SKIP.has(sec) || desk === "opinion" || desk === "op-ed" || desk === "oped" || desk === "editorial") return null;
+  if (sub === "politics" || sub === "elections" || desk === "politics" || desk === "washington") return "politics";
+  if (NYT_SECTIONS[sub] && NYT_SECTIONS[sub] !== "us") return NYT_SECTIONS[sub];
+  if (NYT_SECTIONS[sec]) return NYT_SECTIONS[sec];
+  if (/culture|arts|books|weekend|style|magazine|movies|theater/.test(desk)) return "culture";
+  if (/science|climate|health/.test(desk)) return "science";
+  if (/foreign|world/.test(desk)) return "world";
+  if (/sports/.test(desk)) return "sport";
+  if (/obit/.test(desk)) return "obits";
+  return "other";
+}
+function nytThumb(doc) {
+  const mm = doc.multimedia;
+  if (!mm) return "";
+  if (Array.isArray(mm)) {
+    const pick = mm.find(m => /mediumThreeByTwo440|threeByTwoSmallAt2X|articleLarge|superJumbo/.test(m.subtype || m.subType || m.crop_name || "")) || mm[0];
+    if (!pick?.url) return "";
+    return pick.url.startsWith("http") ? pick.url : "https://static01.nyt.com/" + pick.url;
+  }
+  const u = mm.default?.url || mm.thumbnail?.url || "";
+  return u && !u.startsWith("http") ? "https://static01.nyt.com/" + u : u;
+}
+function nytItem(doc) {
+  const primary = nytTopic(doc);
+  if (!primary) return null;
+  const title = doc.headline?.main || doc.headline?.print_headline || "";
+  if (!title) return null;
+  const summary = doc.abstract || doc.snippet || doc.lead_paragraph || "";
+  const mat = (doc.type_of_material || doc.typeOfMaterial || "").toLowerCase();
+  if (/^(correction|letter|editorial|op-ed|paid death notice)/.test(mat)) return null;
+  return {
+    id: "nyt:" + (doc._id || doc.uri || doc.web_url), source: "nyt", day: ukDay(doc.pub_date),
+    title, summary, url: doc.web_url, section: [doc.section_name || doc.section?.name, doc.subsection_name || doc.subsection?.name].filter(Boolean).join(" · "),
+    thumb: nytThumb(doc), time: doc.pub_date,
+    topics: finalTopics(primary, title + " " + summary)
+  };
+}
+
+async function fetchNyt(from, to, key, onNote) {
+  const months = [];
+  for (let s = from.slice(0, 7); s <= to.slice(0, 7);) {
+    months.push(s);
+    const [y, m] = s.split("-").map(Number);
+    s = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  }
+  if (months.length > 3) throw new Error("NYT search is limited to three calendar months at a time");
+  const docs = [];
+  let usedArchive = true;
+  for (const [i, ym] of months.entries()) {
+    const [y, m] = ym.split("-").map(Number);
+    const cacheKey = ym;
+    if (nytCache.has(cacheKey)) { docs.push(...nytCache.get(cacheKey)); continue; }
+    if (i > 0) await sleep(12500); // NYT allows about 5 requests a minute
+    onNote?.(`Downloading the NYT archive for ${MONTHS[m - 1]} ${y} — this is one large file, it can take a little while…`);
+    try {
+      const res = await fetch(`https://api.nytimes.com/svc/archive/v1/${y}/${m}.json?api-key=${encodeURIComponent(key)}`);
+      if (res.status === 401) throw Object.assign(new Error("the NYT rejected the API key — check it in Settings, and that the Archive API is enabled for your app"), { fatal: true });
+      if (res.status === 429) throw Object.assign(new Error("the NYT rate limit was hit — wait a minute and try again"), { fatal: true });
+      if (!res.ok) throw new Error(`NYT archive answered ${res.status}`);
+      const data = await res.json();
+      const list = data.response?.docs || [];
+      nytCache.set(cacheKey, list);
+      docs.push(...list);
+    } catch (e) {
+      if (e.fatal) throw e;
+      usedArchive = false;
+      break;
+    }
+  }
+  if (!usedArchive) {
+    onNote?.("NYT archive unavailable, using Article Search instead (fewer results)…");
+    docs.length = 0;
+    docs.push(...await fetchNytSearch(from, to, key));
+  }
+  const items = [];
+  for (const d of docs) {
+    const day = d.pub_date ? ukDay(d.pub_date) : "";
+    if (day < from || day > to) continue;
+    const it = nytItem(d);
+    if (it) items.push(it);
+  }
+  return items;
+}
+async function fetchNytSearch(from, to, key) {
+  const docs = [];
+  for (let page = 0; page < 3; page++) {
+    if (page > 0) await sleep(12500);
+    const url = "https://api.nytimes.com/svc/search/v2/articlesearch.json?" + new URLSearchParams({
+      "api-key": key, begin_date: compact(from), end_date: compact(to), sort: "newest", page: String(page)
+    });
+    const res = await fetch(url);
+    if (res.status === 401) throw new Error("the NYT rejected the API key — check it in Settings, and that Article Search is enabled");
+    if (!res.ok) throw new Error(`NYT Article Search answered ${res.status}`);
+    const got = (await res.json()).response?.docs || [];
+    docs.push(...got);
+    if (got.length < 10) break;
+  }
+  return docs;
+}
+
+/* Per-day links: BBC via the Wayback Machine and Google, plus newspaper date pages */
+function dayLinks(day) {
+  const { y, m, d } = parseDay(day);
+  const wb = path => `https://web.archive.org/web/${compact(day)}120000/https://www.bbc.co.uk/news${path}`;
+  const g = "https://www.google.com/search?" + new URLSearchParams({ q: `site:bbc.co.uk/news after:${addDays(day, -1)} before:${addDays(day, 1)}` });
+  const gd = `${y}/${MON3[m - 1]}/${String(d).padStart(2, "0")}`;
+  const nd = `${y}/${String(m).padStart(2, "0")}/${String(d).padStart(2, "0")}`;
+  return [
+    ["bbc", "BBC front page", wb("")],
+    ["bbc", "BBC arts", wb("/entertainment_and_arts")],
+    ["bbc", "BBC science", wb("/science_and_environment")],
+    ["bbc", "BBC world", wb("/world")],
+    ["bbc", "Search BBC that day", g],
+    ["guardian", "Guardian culture", `https://www.theguardian.com/culture/${gd}/all`],
+    ["guardian", "Guardian world", `https://www.theguardian.com/world/${gd}/all`],
+    ["nyt", "NYT Today's Paper", `https://www.nytimes.com/issue/todayspaper/${nd}/todays-new-york-times`],
+    ["wiki", "Wikipedia day", wikiUrl(wikiPageName(day))]
+  ];
+}
+
+/* ---------- state ---------- */
+const state = {
+  items: [], days: [], loaded: false, running: 0,
+  sources: new Set(SOURCES.map(s => s.id)),
+  topics: new Set(TOPICS.filter(t => !t.noisy).map(t => t.id)),
+  showAll: false, q: "",
+  shortlist: store.get("shortlist", {}),
+  settings: Object.assign({ guardian: "", nyt: "", wiki: true, thumbs: true }, store.get("settings", {}))
+};
+
+/* ---------- status ---------- */
+const statusEl = $("#status");
+function setStatus(id, kind, text) {
+  let el = statusEl.querySelector(`[data-id="${id}"]`);
+  if (!el) { el = h("div", { "data-id": id }); statusEl.append(el); }
+  el.className = "st " + kind;
+  el.textContent = text;
+}
+function clearStatus() { statusEl.textContent = ""; }
+
+/* ---------- searching ---------- */
+async function run() {
+  let from = $("#from").value, to = $("#to").value;
+  if (!from || !to) return;
+  if (from > to) [from, to] = [to, from];
+  if (to > todayUK()) to = todayUK();
+  const span = daysBetween(from, to) + 1;
+  if (span > 31) { setStatus("range", "err", "Please choose 31 days or fewer."); return; }
+  store.set("lastRange", { from, to });
+  history.replaceState(null, "", `#${from}${from === to ? "" : "/" + to}`);
+  const token = ++state.running;
+  clearStatus();
+  $("#welcome").hidden = true;
+  $("#filters").hidden = false;
+  state.items = []; state.days = rangeDays(from, to).reverse(); state.loaded = true;
+  render();
+  const btn = $("#btn-go"); btn.disabled = true;
+  const live = () => token === state.running;
+  const add = items => { if (!live()) return; const seen = new Set(state.items.map(i => i.id)); state.items.push(...items.filter(i => !seen.has(i.id))); render(); };
+
+  const jobs = [];
+  const s = state.settings;
+
+  if (s.wiki) jobs.push((async () => {
+    let n = 0, failed = 0;
+    for (const [i, day] of state.days.entries()) {
+      if (!live()) return;
+      setStatus("wiki", "busy", `Wikipedia: reading ${longDay(day)} (${i + 1} of ${state.days.length})…`);
+      try { const got = await fetchWikiDay(day); n += got.length; add(got); }
+      catch (e) { failed++; console.warn("Wikipedia", day, e); }
+      await sleep(150);
+    }
+    if (!live()) return;
+    if (failed === state.days.length) setStatus("wiki", "err", "Wikipedia could not be reached. Try again in a minute.");
+    else setStatus("wiki", "ok", `Wikipedia: ${n} items${failed ? ` (${failed} day${failed > 1 ? "s" : ""} could not be read)` : ""}.`);
+  })());
+  else setStatus("wiki", "info", "Wikipedia is switched off in Settings.");
+
+  if (s.guardian) jobs.push((async () => {
+    setStatus("guardian", "busy", "The Guardian: searching…");
+    try {
+      const { items, truncated } = await fetchGuardian(from, to, s.guardian, state.showAll, (p, ps, n) => live() && setStatus("guardian", "busy", `The Guardian: page ${p} of ${ps} (${n} stories)…`));
+      add(items);
+      if (live()) setStatus("guardian", "ok", `The Guardian: ${items.length} stories${truncated ? " (the newest — choose fewer days for more)" : ""}.`);
+    } catch (e) { if (live()) setStatus("guardian", "err", "The Guardian: " + e.message + "."); }
+  })());
+  else setStatus("guardian", "info", "The Guardian: add a free API key in Settings to include it.");
+
+  if (s.nyt) jobs.push((async () => {
+    setStatus("nyt", "busy", "New York Times: searching…");
+    try {
+      const items = await fetchNyt(from, to, s.nyt, note => live() && setStatus("nyt", "busy", note));
+      add(items);
+      if (live()) setStatus("nyt", "ok", `New York Times: ${items.length} stories.`);
+    } catch (e) { if (live()) setStatus("nyt", "err", "New York Times: " + e.message + "."); }
+  })());
+  else setStatus("nyt", "info", "New York Times: add a free developer key in Settings to include it.");
+
+  await Promise.all(jobs);
+  if (live()) btn.disabled = false;
+}
+
+/* ---------- filtering & rendering ---------- */
+function visible(item) {
+  if (!state.sources.has(item.source)) return false;
+  const topics = item.topics;
+  const noisyOnly = topics.every(t => t === "sport" || t === "politics");
+  if (noisyOnly && !state.showAll) return false;
+  if (!topics.some(t => state.topics.has(t) || (state.showAll && (t === "sport" || t === "politics")))) return false;
+  if (state.q) {
+    const hay = (item.title + " " + item.summary + " " + (item.context || "") + " " + (item.section || "")).toLowerCase();
+    if (!state.q.split(/\s+/).every(w => hay.includes(w))) return false;
+  }
+  return true;
+}
+
+function renderFilters() {
+  const srcLine = $("#f-sources"), topLine = $("#f-topics");
+  srcLine.querySelectorAll(".chip").forEach(c => c.remove());
+  topLine.querySelectorAll(".chip").forEach(c => c.remove());
+  const countBy = (fn) => { const m = {}; for (const it of state.items) for (const k of fn(it)) m[k] = (m[k] || 0) + 1; return m; };
+  const sc = countBy(it => [it.source]);
+  for (const s of SOURCES) {
+    srcLine.append(h("button", { class: "chip", type: "button", "aria-pressed": String(state.sources.has(s.id)),
+      onclick: () => { state.sources.has(s.id) ? state.sources.delete(s.id) : state.sources.add(s.id); render(); } },
+      h("span", { class: "dot", style: `color: var(--${s.id})` }), s.label, h("span", { class: "n", text: sc[s.id] || 0 })));
+  }
+  const tc = countBy(it => it.topics);
+  for (const t of TOPICS) {
+    if (t.noisy && !state.showAll) continue;
+    if (!tc[t.id]) continue;
+    topLine.append(h("button", { class: "chip", type: "button", "aria-pressed": String(state.topics.has(t.id) || (t.noisy && state.showAll)),
+      onclick: () => {
+        if (t.noisy) { state.showAll = !state.showAll; $("#show-all").checked = state.showAll; }
+        else state.topics.has(t.id) ? state.topics.delete(t.id) : state.topics.add(t.id);
+        render();
+      } }, t.label, h("span", { class: "n", text: tc[t.id] || 0 })));
+  }
+}
+
+const STAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+
+function storyCard(it) {
+  const starred = !!state.shortlist[it.id];
+  const star = h("button", { class: "star-btn", type: "button", "aria-pressed": String(starred), "aria-label": starred ? "Remove from shortlist" : "Add to shortlist", title: starred ? "Remove from shortlist" : "Add to shortlist",
+    onclick: e => { toggleStar(it); const on = !!state.shortlist[it.id]; e.currentTarget.setAttribute("aria-pressed", String(on)); e.currentTarget.closest(".story").classList.toggle("starred", on); } });
+  star.innerHTML = STAR_SVG;
+  const srcLabel = SOURCES.find(s => s.id === it.source).label;
+  const topicLabel = it.topics.map(t => TOPIC_LABEL[t]).join(" · ");
+  const thumb = state.settings.thumbs && it.thumb ? h("div", { class: "thumb", style: `background-image:url("${it.thumb.replace(/"/g, "%22")}")` }) : null;
+  const card = h("article", { class: "story" + (it.source === "wiki" ? " wiki-item" : "") + (starred ? " starred" : "") },
+    thumb,
+    h("div", { class: "body" },
+      h("div", { class: "meta" }, h("span", { class: "src " + it.source, text: srcLabel }), h("span", { class: "topic", text: topicLabel }), it.section && it.source !== "wiki" ? h("span", { class: "section", text: it.section }) : null, it.via ? h("span", { class: "section", text: "via " + it.via }) : null),
+      it.context ? h("div", { class: "ctx", text: it.context }) : null,
+      h("h3", null, h("a", { href: it.url, target: "_blank", rel: "noopener", text: it.title })),
+      it.summary ? h("p", { text: it.summary }) : null,
+      it.extra?.length ? h("div", { class: "links" }, it.extra.map(x => h("a", { href: x.url, target: "_blank", rel: "noopener", text: x.name }))) : null,
+      star)
+  );
+  if (thumb) star.classList.add("on-thumb");
+  return card;
+}
+
+function render() {
+  const daysEl = $("#days");
+  daysEl.textContent = "";
+  if (!state.loaded) return;
+  renderFilters();
+  const byDay = new Map(state.days.map(d => [d, []]));
+  for (const it of state.items) if (byDay.has(it.day) && visible(it)) byDay.get(it.day).push(it);
+  const order = { guardian: 0, nyt: 1, wiki: 2 };
+  for (const [day, list] of byDay) {
+    list.sort((a, b) => (order[a.source] - order[b.source]) || String(b.time || "").localeCompare(String(a.time || "")));
+    const sec = h("section", { class: "day", "aria-label": longDay(day) },
+      h("div", { class: "day-head" }, h("h2", { text: longDay(day) }), h("span", { class: "day-n", text: `${list.length} stor${list.length === 1 ? "y" : "ies"}` })),
+      h("div", { class: "day-links" }, dayLinks(day).map(([cls, label, url]) => h("a", { class: "dl " + cls, href: url, target: "_blank", rel: "noopener", text: label }))),
+      list.length ? h("div", { class: "grid" }, list.map(storyCard)) : h("p", { class: "empty-day", text: state.items.length ? "Nothing matches the current filters for this day." : "Loading…" })
+    );
+    daysEl.append(sec);
+  }
+}
+
+/* ---------- shortlist ---------- */
+function toggleStar(it) {
+  if (state.shortlist[it.id]) delete state.shortlist[it.id];
+  else state.shortlist[it.id] = { id: it.id, source: it.source, day: it.day, title: it.title, summary: it.summary, url: it.url, topics: it.topics, context: it.context || "", note: "", added: Date.now() };
+  store.set("shortlist", state.shortlist);
+  updateCount();
+}
+function updateCount() { $("#sl-count").textContent = Object.keys(state.shortlist).length; }
+function renderShortlist() {
+  const list = $("#sl-list"); list.textContent = "";
+  const items = Object.values(state.shortlist).sort((a, b) => b.day.localeCompare(a.day) || b.added - a.added);
+  if (!items.length) { list.append(h("p", { class: "sl-empty", text: "No stories yet. Press the star on any story to keep it here." })); return; }
+  for (const it of items) {
+    const note = h("input", { class: "note", type: "text", placeholder: "Note for the card…", value: it.note || "",
+      oninput: e => { state.shortlist[it.id].note = e.target.value; store.set("shortlist", state.shortlist); } });
+    list.append(h("div", { class: "sl-item" },
+      h("div", null,
+        h("div", { class: "meta" }, h("span", { class: "src " + it.source, text: SOURCES.find(s => s.id === it.source).label }), h("span", { class: "topic", text: longDay(it.day) })),
+        h("a", { href: it.url, target: "_blank", rel: "noopener", text: it.title })),
+      h("button", { class: "btn ghost", type: "button", text: "Remove", onclick: () => { delete state.shortlist[it.id]; store.set("shortlist", state.shortlist); updateCount(); renderShortlist(); render(); } }),
+      note));
+  }
+}
+function shortlistText() {
+  return Object.values(state.shortlist).sort((a, b) => a.day.localeCompare(b.day)).map(it =>
+    `${it.day} — ${it.title}\n${SOURCES.find(s => s.id === it.source).label}: ${it.url}${it.summary ? "\n" + it.summary : ""}${it.note ? "\nNote: " + it.note : ""}`).join("\n\n");
+}
+
+/* ---------- wiring ---------- */
+function setRange(from, to) { $("#from").value = from; $("#to").value = to; }
+function initDates() {
+  const today = todayUK();
+  $("#from").max = today; $("#to").max = today;
+  const m = location.hash.match(/^#(\d{4}-\d{2}-\d{2})(?:\/(\d{4}-\d{2}-\d{2}))?$/);
+  if (m) { setRange(m[1], m[2] || m[1]); return true; }
+  const last = store.get("lastRange", null);
+  if (last) setRange(last.from, last.to); else setRange(today, today);
+  return false;
+}
+document.querySelectorAll("[data-quick]").forEach(b => b.addEventListener("click", () => {
+  const q = b.dataset.quick, today = todayUK();
+  let from = $("#from").value || today, to = $("#to").value || today;
+  if (q === "0") from = to = today;
+  else if (q === "1") from = to = addDays(today, -1);
+  else if (q === "week") { from = addDays(today, -6); to = today; }
+  else {
+    const len = daysBetween(from, to) + 1, dir = q === "shift-back" ? -1 : 1;
+    from = addDays(from, dir * len); to = addDays(to, dir * len);
+    if (to > today) { to = today; from = addDays(today, -(len - 1)); }
+  }
+  setRange(from, to); run();
+}));
+$("#q-form").addEventListener("submit", e => { e.preventDefault(); run(); });
+$("#search").addEventListener("input", e => { state.q = e.target.value.trim().toLowerCase(); render(); });
+$("#show-all").addEventListener("change", e => {
+  state.showAll = e.target.checked; render();
+  if (state.showAll && state.settings.guardian && state.loaded) toast("Press Find stories again to fetch Guardian sport and politics too.");
+});
+
+const dlgSettings = $("#dlg-settings");
+$("#btn-settings").addEventListener("click", openSettings);
+function openSettings() {
+  $("#key-guardian").value = state.settings.guardian; $("#key-nyt").value = state.settings.nyt;
+  $("#opt-wiki").checked = state.settings.wiki; $("#opt-thumbs").checked = state.settings.thumbs;
+  dlgSettings.showModal();
+}
+dlgSettings.addEventListener("close", () => {
+  if (dlgSettings.returnValue !== "save") return;
+  state.settings = { guardian: $("#key-guardian").value.trim(), nyt: $("#key-nyt").value.trim(), wiki: $("#opt-wiki").checked, thumbs: $("#opt-thumbs").checked };
+  store.set("settings", state.settings);
+  toast("Settings saved");
+  render();
+});
+
+const dlgSl = $("#dlg-shortlist");
+$("#btn-shortlist").addEventListener("click", () => { renderShortlist(); dlgSl.showModal(); });
+dlgSl.addEventListener("close", () => render());
+$("#sl-copy").addEventListener("click", async () => {
+  const text = shortlistText();
+  if (!text) { toast("The shortlist is empty"); return; }
+  try { await navigator.clipboard.writeText(text); toast("Shortlist copied"); } catch { toast("Could not copy — your browser blocked it"); }
+});
+$("#sl-clear").addEventListener("click", () => {
+  if (!Object.keys(state.shortlist).length || !confirm("Remove every story from the shortlist?")) return;
+  state.shortlist = {}; store.set("shortlist", state.shortlist); updateCount(); renderShortlist(); render();
+});
+
+/* theme */
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+applyTheme(store.get("theme", null));
+$("#btn-theme").addEventListener("click", () => {
+  const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const next = dark ? "light" : "dark"; applyTheme(next); store.set("theme", next);
+});
+
+updateCount();
+if (initDates()) run();
+else if (!state.settings.guardian && !state.settings.nyt && !store.get("seenSettings", false)) { store.set("seenSettings", true); }
+</script>
+</body>
+</html>
