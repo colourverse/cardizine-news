@@ -14,7 +14,7 @@
   --ground: #F3F0EA; --panel: #FFFFFF; --panel-2: #F8F6F1; --line: #E2DDD3; --line-2: #CFC8BB;
   --ink: #1D1B18; --ink-2: #5C574E; --ink-3: #8D877C;
   --accent: #C2410C; --accent-2: #9A3412; --accent-soft: #FBE5D6; --on-accent: #FFFFFF;
-  --star: #D97706;
+  --star: #D97706; --heart: #D7262E;
   --wiki: #3F4A5C; --wiki-soft: #E4E8EF;
   --guardian: #052962; --guardian-soft: #DDE5F3;
   --nyt: #121212; --nyt-soft: #E6E6E6;
@@ -32,7 +32,7 @@
     --ground: #14130F; --panel: #1E1C18; --panel-2: #24221D; --line: #34312A; --line-2: #48443B;
     --ink: #EEEAE2; --ink-2: #B3AC9F; --ink-3: #7F786C;
     --accent: #FB8A4C; --accent-2: #FDA774; --accent-soft: #3A2417; --on-accent: #1A0C04;
-    --star: #FBBF24;
+    --star: #FBBF24; --heart: #FF5A60;
     --wiki: #B9C3D3; --wiki-soft: #262B34;
     --guardian: #9DB7E8; --guardian-soft: #1C2535;
     --nyt: #E8E8E8; --nyt-soft: #2A2A2A;
@@ -47,7 +47,7 @@
   --ground: #14130F; --panel: #1E1C18; --panel-2: #24221D; --line: #34312A; --line-2: #48443B;
   --ink: #EEEAE2; --ink-2: #B3AC9F; --ink-3: #7F786C;
   --accent: #FB8A4C; --accent-2: #FDA774; --accent-soft: #3A2417; --on-accent: #1A0C04;
-  --star: #FBBF24;
+  --star: #FBBF24; --heart: #FF5A60;
   --wiki: #B9C3D3; --wiki-soft: #262B34;
   --guardian: #9DB7E8; --guardian-soft: #1C2535;
   --nyt: #E8E8E8; --nyt-soft: #2A2A2A;
@@ -72,8 +72,8 @@ button { cursor: pointer; }
 header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--ground) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .top-in { max-width: 1180px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
 .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.mark-card { width: 26px; height: 34px; border-radius: 5px; background: var(--accent); position: relative; transform: rotate(-8deg); box-shadow: 4px 2px 0 -1px var(--line-2); flex: none; }
-.mark-card::after { content: "N"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--on-accent); font-family: var(--f-display); font-weight: 650; font-size: 17px; transform: rotate(8deg); }
+.mark-card { width: 26px; height: 34px; border-radius: 5px; background: var(--panel); border: 1.5px solid var(--line-2); position: relative; transform: rotate(-8deg); box-shadow: 3px 2px 0 -1px var(--line-2); flex: none; }
+.mark-card::after { content: ""; position: absolute; inset: 7px 4px; background: var(--heart); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 29C14 27 2 19.5 2 10.5 2 5.8 5.6 2.5 9.6 2.5c2.8 0 5 1.5 6.4 3.8 1.4-2.3 3.6-3.8 6.4-3.8 4 0 7.6 3.3 7.6 8 0 9-12 16.5-14 18.5z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 29C14 27 2 19.5 2 10.5 2 5.8 5.6 2.5 9.6 2.5c2.8 0 5 1.5 6.4 3.8 1.4-2.3 3.6-3.8 6.4-3.8 4 0 7.6 3.3 7.6 8 0 9-12 16.5-14 18.5z'/%3E%3C/svg%3E") center / contain no-repeat; }
 .wordmark { font-family: var(--f-display); font-weight: 650; font-size: 22px; letter-spacing: -0.01em; }
 .wordmark span { color: var(--ink-3); font-weight: 500; }
 .top-actions { margin-left: auto; display: flex; gap: 6px; }
